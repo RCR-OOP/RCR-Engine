@@ -1,4 +1,5 @@
 import pygame
+from .Functional import neni
 from typing import Tuple, Dict, Any, Union
 
 # ! Functions
@@ -11,19 +12,24 @@ class FontRender:
         font: pygame.font.Font,
         color: pygame.Color,
         pos: Tuple[int, int],
-        text_callback=callback,
+        text: str="",
         frames: int=-1
     ) -> None:
         self.font = font
         self.color = color
         self.pos = pos
-        self.callback = text_callback
+        self.text = text
         self.frames = frames
+    
+    def update(self, text: str=None, color: pygame.Color=None, pos: Tuple[int, int]=None) -> None:
+        self.text = neni(text, self.text)
+        self.color = neni(color, self.color)
+        self.pos = neni(pos, self.pos)
     
     def get_render_datas(self) -> Tuple[Tuple, Dict[str, Any]]:
         if self.frames > 0:
             self.frames -= 1
-        return (self.font.render(self.callback(), True, self.color), self.pos), {}
+        return (self.font.render(self.text, True, self.color), self.pos), {}
 
 class ImageRender():
     def __init__(
@@ -35,6 +41,9 @@ class ImageRender():
         self.img = img
         self.pos = pos
         self.frames = frames
+    
+    def update(self, pos: Tuple[int, int]) -> None:
+        self.pos = neni(pos, self.pos)
 
     def get_render_datas(self) -> Tuple[Tuple, Dict[str, Any]]:
         if self.frames > 0:

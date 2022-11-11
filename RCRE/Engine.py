@@ -1,8 +1,14 @@
 import time
 import os
 import pygame
+from pygame.colordict import THECOLORS
 from threading import Thread
-from typing import Tuple, Optional, NoReturn, Dict, Any, List
+from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
+try:
+    from rich.console import Console
+    console = Console()
+except:
+    console = None
 # ! PyGame Settings
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -25,7 +31,11 @@ class Loader:
             "engine_icon": pygame.image.load(Units.PATH_ENGINE_ICON),
             "error": pygame.image.load(Units.PATH_ERROR_IMAGE)
         }
-    
+        self.colors: Dict[str, pygame.Color] = {}
+
+        for i in THECOLORS:
+            self.colors[i] = pygame.Color(*THECOLORS[i])
+
     def load_image_file(self, fp: Types.PATH, tag: str) -> None:
         self.images[tag] = pygame.image.load(fp)
 
@@ -71,9 +81,9 @@ class Render:
             "fps-counter",
             Types.FontRender(
                 self.loader.fonts["fpstimer"],
-                Units.COLOR_BLACK,
+                self.loader.colors["black"],
                 pos or (0, 0),
-                self._fpsc,
+                f"{round(self.clock.get_fps(), 1)} fps",
                 -1
             ),
             -1
@@ -85,7 +95,7 @@ class Render:
         pos: Tuple[int, int],
         color: pygame.Color,
         text_callback=_fpsc,
-        timer: float=-1.0
+        timer: Union[float, int]=-1
     ) -> None:
         pass
     
@@ -95,7 +105,7 @@ class Render:
         img_tag: str,
         pos: Tuple[int, int],
         resize: Tuple[int, int]=None,
-        timer: float=-1.0
+        timer: Union[float, int]=-1
     ) -> None:
         img = pygame.transform.scale(self.loader.images.get(img_tag, self.loader.images["error"]), resize) \
             if (resize is not None) \
@@ -139,6 +149,9 @@ class RCREngine:
             daemon=True
         )
         self.loop_running = True
+    
+    def __del__(self) -> None:
+        self.stop()
     
     def start(self) -> None:
         self.loop_running = True
@@ -188,11 +201,25 @@ class RCREngine:
                 if event.type == pygame.QUIT:
                     self.stop()
                     return 0
-            self.root.fill(Units.COLOR_WHITE)
-            self.render._objc()
-            for rargs, rkwargs in self.render.get_render_datas():
-                try:
-                    self.root.blit(*rargs, **rkwargs)
-                except:
-                    pass
+            try:
+                self.root.fill(self.loader.colors["white"])
+            except:
+                Functional.print_exception(console)
+            try:
+                if self.show_fps:
+                    self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
+            except:
+                Functional.print_exception(console)
+            try:
+                for rargs, rkwargs in self.render.get_render_datas():
+                    try:
+                        self.root.blit(*rargs, **rkwargs)
+                    except:
+                        Functional.print_exception(console)
+            except:
+                Functional.print_exception(console)
+            try:
+                self.render._objc()
+            except:
+                Functional.print_exception(console)
             pygame.display.update()

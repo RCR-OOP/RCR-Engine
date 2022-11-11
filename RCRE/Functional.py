@@ -1,5 +1,7 @@
+NENI_TYPES = [Ellipsis, None, NotImplemented]
+
 def neni(value, default=None):
-    if isinstance(value, None) or isinstance(value, Ellipsis) or isinstance(value, NotImplemented):
+    if (type(value) in NENI_TYPES) or (value in NENI_TYPES):
         return default
     return value
 
@@ -7,3 +9,7 @@ def ntd(value, default=-1):
     if value < 0:
         return default
     return value
+
+def print_exception(console) -> None:
+    if console is not None:
+        console.print_exception()
