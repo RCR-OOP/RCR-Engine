@@ -81,4 +81,4 @@ class ImageRender():
 
 # ! Const
 PATH = str
-RENDER_OBJECT = Union[FontRender, ImageRender, Any]
+RENDER_OBJECT = Union[FontRender, ImageRender]

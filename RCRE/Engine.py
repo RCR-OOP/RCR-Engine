@@ -1,6 +1,8 @@
 import time
 import os
 import pygame
+from tempfile import mkstemp
+from PIL import Image
 from pygame.colordict import THECOLORS
 from threading import Thread
 from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
@@ -16,11 +18,11 @@ os.environ['RCR_ENGINE_MSG'] = "True"
 # ! Local Imports
 try:
     from . import Units
-    from . import Types
+    from . import EngineTypes as Types
     from . import Functional
 except:
     import Units
-    import Types
+    import EngineTypes as Types
     import Functional
 
 class Loader:
@@ -33,12 +35,38 @@ class Loader:
             "error": pygame.image.load(Units.PATH_ERROR_IMAGE)
         }
         self.colors: Dict[str, pygame.Color] = {}
-
         for i in THECOLORS:
             self.colors[i] = pygame.Color(*THECOLORS[i])
+        self.tempfiles: List[str] = []
+    
+    def __del__(self) -> None:
+        self.fonts.clear()
+        self.images.clear()
+        self.colors.clear()
+        for i in self.tempfiles:
+            try:
+                os.remove(i)
+            except:
+                pass
+    
+    def add_color(self, tag: str, color: Any) -> None:
+        self.colors[tag] = pygame.Color(color)
 
-    def load_image_file(self, fp: Types.PATH, tag: str) -> None:
+    def load_image_file(self, tag: str, fp: Types.PATH) -> None:
         self.images[tag] = pygame.image.load(fp)
+    
+    def load_image_pillow(self, tag: str, fp: Image.Image) -> None:
+        path = mkstemp(suffix=".png")[1];fp.save(path)
+        self.images[tag] = pygame.image.load(path)
+        self.tempfiles.append(path)
+    
+    def load_font_file(self, tag: str, fp: Types.PATH, size: int=20) -> None:
+        """
+        Loads `Font` into Python by file path. You can also use file names from:
+
+        - `Windows` `->` `C:\Windows\Fonts`
+        """
+        self.fonts[tag] = pygame.font.Font(fp, size)
 
 class Render:
     def __init__(
@@ -122,11 +150,14 @@ class Render:
         img_tag: str,
         pos: Tuple[int, int],
         resize: Tuple[int, int]=None,
+        rotate: float=None,
         timer: Union[float, int]=-1
     ) -> None:
         img = pygame.transform.scale(self.loader.images.get(img_tag, self.loader.images["error"]), resize) \
             if (resize is not None) \
             else self.loader.images.get(img_tag, self.loader.images["error"])
+        if rotate is not None:
+            img = pygame.transform.rotate(rotate)
         self._arobj(
             obj_tag,
             Types.ImageRender(
@@ -160,6 +191,7 @@ class RCREngine:
         self.clock: pygame.time.Clock = None
         self.loader: Loader = None
         self.render: Render = None
+        self.console = console
 
         # ! Create Thread
         self.loop_thread = Thread(
