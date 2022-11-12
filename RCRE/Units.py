@@ -1,5 +1,8 @@
 import os
 
+__name__ = "RCR Engine"
+__version__ = "0.1.0-alpha"
+
 PATH_ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
 PATH_ENGINE_ICON = os.path.join(PATH_ASSETS_DIR, "icon.png")
 PATH_ERROR_IMAGE = os.path.join(PATH_ASSETS_DIR, "error.png")

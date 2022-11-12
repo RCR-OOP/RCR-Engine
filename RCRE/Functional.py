@@ -9,7 +9,3 @@ def ntd(value, default=-1):
     if value < 0:
         return default
     return value
-
-def print_exception(console) -> None:
-    if console is not None:
-        console.print_exception()

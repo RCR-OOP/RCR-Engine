@@ -4,13 +4,14 @@ import pygame
 from pygame.colordict import THECOLORS
 from threading import Thread
 from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
-try:
-    from rich.console import Console
-    console = Console()
-except:
-    console = None
+from rich.console import Console
+
+# ! Initialized
+console = Console()
+
 # ! PyGame Settings
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+os.environ['RCR_ENGINE_MSG'] = "True"
 
 # ! Local Imports
 try:
@@ -58,9 +59,12 @@ class Render:
         return f"{round(self.clock.get_fps(), 1)} fps"
     
     def _objc(self) -> None:
-        for i in self.time_render.copy():
-            if self.time_render[i].frames == 0:
-                self.time_render.pop(i, None)
+        try:
+            for i in self.time_render.copy():
+                if self.time_render[i].frames == 0:
+                    self.time_render.pop(i, None)
+        except:
+            console.print_exception()
     
     def _arobj(self, obj_tag: str, obj: Types.RENDER_OBJECT, timer: str) -> None:
         if timer < 0:
@@ -69,9 +73,12 @@ class Render:
             self.time_render[obj_tag] = obj
     
     def get_render_datas(self) -> List[Tuple[Tuple, Dict[str, Any]]]:
-        return \
-            [er.get_render_datas() for er in self.endless_render.values()] +\
-            [nr.get_render_datas() for nr in self.time_render.values()]
+        try:
+            return \
+                [er.get_render_datas() for er in self.endless_render.values()] +\
+                [nr.get_render_datas() for nr in self.time_render.values()]
+        except:
+            console.print_exception()
     
     def render_fps(
         self,
@@ -201,25 +208,16 @@ class RCREngine:
                 if event.type == pygame.QUIT:
                     self.stop()
                     return 0
-            try:
-                self.root.fill(self.loader.colors["white"])
-            except:
-                Functional.print_exception(console)
-            try:
-                if self.show_fps:
-                    self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
-            except:
-                Functional.print_exception(console)
-            try:
-                for rargs, rkwargs in self.render.get_render_datas():
-                    try:
-                        self.root.blit(*rargs, **rkwargs)
-                    except:
-                        Functional.print_exception(console)
-            except:
-                Functional.print_exception(console)
-            try:
-                self.render._objc()
-            except:
-                Functional.print_exception(console)
+            self.root.fill(self.loader.colors["white"])
+            if self.show_fps:
+                self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
+            for rargs, rkwargs in self.render.get_render_datas():
+                try:
+                    self.root.blit(*rargs, **rkwargs)
+                except:
+                    console.print_exception()
+            self.render._objc()
             pygame.display.update()
+
+if bool(os.environ['RCR_ENGINE_MSG']):
+    console.print(f"[#42036F]*[/] [#00FF00]{Units.__name__}[/] (v[#33CCCC]{Units.__version__}[/]) [yellow]is loaded[/]!")
