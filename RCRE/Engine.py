@@ -72,6 +72,16 @@ class Render:
         else:
             self.time_render[obj_tag] = obj
     
+    def delete_obj(self, obj_tag: str) -> None:
+        for i in self.endless_render.copy():
+            if obj_tag == i:
+                self.endless_render.pop(i, None)
+                return None
+        for i in self.time_render.copy():
+            if obj_tag == i:
+                self.time_render.pop(i, None)
+                return None
+    
     def get_render_datas(self) -> List[Tuple[Tuple, Dict[str, Any]]]:
         try:
             return \
@@ -121,6 +131,7 @@ class Render:
             obj_tag,
             Types.ImageRender(
                 img,
+                img.get_size(),
                 pos,
                 Functional.ntd(int(timer*self.max_fps), -1)
             ),
@@ -176,7 +187,7 @@ class RCREngine:
             self.clock = None
             self.root = None
     
-    def mainloop(self) -> NoReturn:
+    def mainloop(self) -> None:
         while self.loop_running:
             time.sleep(0.1)
         self.stop()
@@ -213,7 +224,8 @@ class RCREngine:
                 self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
             for rargs, rkwargs in self.render.get_render_datas():
                 try:
-                    self.root.blit(*rargs, **rkwargs)
+                    if (len(rargs)+len(rkwargs)) > 0:
+                        self.root.blit(*rargs, **rkwargs)
                 except:
                     console.print_exception()
             self.render._objc()
