@@ -191,7 +191,7 @@ class RCREngine:
         self.clock: pygame.time.Clock = None
         self.loader: Loader = None
         self.render: Render = None
-        self.console = console
+        self.console = kwargs.get("console", console)
 
         # ! Create Thread
         self.loop_thread = Thread(
