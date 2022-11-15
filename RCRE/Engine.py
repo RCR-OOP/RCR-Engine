@@ -3,31 +3,35 @@ import os
 import pygame
 from tempfile import mkstemp
 from PIL import Image
-from pygame.colordict import THECOLORS
 from threading import Thread
 from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
 from rich.console import Console
 
-# ! Initialized
-console = Console()
-
-# ! PyGame Settings
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-os.environ['RCR_ENGINE_MSG'] = "True"
+# ! Import PyGame and Settings
+import pygame
+from pygame.colordict import THECOLORS
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+os.environ['RCR_ENGINE_MSG'] = 'True'
 
 # ! Local Imports
 try:
     from . import Units
     from . import EngineTypes as Types
     from . import Functional
+    from . import Player
 except:
     import Units
     import EngineTypes as Types
     import Functional
+    import Player
+
+# ! Initialized
+console = Console()
 
 class Loader:
     def __init__(self) -> None:
         self.fonts: Dict[str, pygame.font.Font] = {
+            "std": pygame.font.Font(None, 18),
             "fpstimer": pygame.font.Font(None, 20)
         }
         self.images: Dict[str, pygame.Surface] = {
@@ -37,6 +41,7 @@ class Loader:
         self.colors: Dict[str, pygame.Color] = {}
         for i in THECOLORS:
             self.colors[i] = pygame.Color(*THECOLORS[i])
+        self.sounds: Dict[str, Player.Sound] = {}
         self.tempfiles: List[str] = []
     
     def __del__(self) -> None:
@@ -67,6 +72,9 @@ class Loader:
         - `Windows` `->` `C:\Windows\Fonts`
         """
         self.fonts[tag] = pygame.font.Font(fp, size)
+    
+    def load_sound(self, tag: str, fp: Player.SOUND_FP) -> None:
+        self.sounds[tag] = Player.Sound(fp)
 
 class Render:
     def __init__(
@@ -136,13 +144,25 @@ class Render:
     
     def render_font(
         self,
+        obj_tag: str,
         font_tag: str,
         pos: Tuple[int, int],
         color: pygame.Color,
-        text_callback=_fpsc,
-        timer: Union[float, int]=-1
+        text: str="",
+        timer: Union[float, int]=-1,
+        visible: bool=True
     ) -> None:
-        pass
+        self._arobj(
+            obj_tag,
+            Types.FontRender(
+                self.loader.fonts.get(font_tag, self.loader.fonts["std"]),
+                pygame.Color(color),
+                pos,
+                text,
+                Functional.ntd(int(timer*self.max_fps), -1),
+                visible
+            )
+        )
     
     def render_image(
         self,
@@ -153,9 +173,8 @@ class Render:
         rotate: float=None,
         timer: Union[float, int]=-1
     ) -> None:
-        img = pygame.transform.scale(self.loader.images.get(img_tag, self.loader.images["error"]), resize) \
-            if (resize is not None) \
-            else self.loader.images.get(img_tag, self.loader.images["error"])
+        img = self.loader.images.get(img_tag, self.loader.images["error"])
+        img: pygame.Surface = pygame.transform.scale(img, resize) if (resize is not None) else img
         if rotate is not None:
             img = pygame.transform.rotate(rotate)
         self._arobj(
@@ -251,6 +270,7 @@ class RCREngine:
                 if event.type == pygame.QUIT:
                     self.stop()
                     return 0
+                # TODO: Обработчик Event
             self.root.fill(self.loader.colors["white"])
             if self.show_fps:
                 self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")

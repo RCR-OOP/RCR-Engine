@@ -24,18 +24,21 @@ class Debag:
         t.add(f"[#FF9000]CPU Load:[/] [#37B6CE]{self.progress.cpu_percent()}[/] %")
         r_objs = t.add("[#FF9000]Render Object[/]")
         r_objs_endless = r_objs.add("[#A63100]render.endless_render[/]")
-        for i in e.render.endless_render.copy():
+        for i in list(e.render.endless_render.keys()):
             r_objs_endless.add(f"[green]'{i}'[/]")
         r_objs_time = r_objs.add("[#A63100]render.time_render[/]")
-        for i in e.render.time_render.copy():
+        for i in list(e.render.time_render.keys()):
             r_objs_time.add(f"[green]'{i}'[/]")
         l_objs = t.add("[#FF9000]Loader Objects[/]")
         l_objs_images = l_objs.add("[#A63100]loader.images[/]")
-        for i in e.loader.images.copy():
+        for i in list(e.loader.images.keys()):
             l_objs_images.add(f"[green]'{i}'[/]")
         l_objs_fonts = l_objs.add("[#A63100]loader.fonts[/]")
-        for i in e.loader.fonts.copy():
+        for i in list(e.loader.fonts.keys()):
             l_objs_fonts.add(f"[green]'{i}'[/]")
+        l_objs_sounds = l_objs.add("[#A63100]loader.sounds[/]")
+        for i in list(e.loader.sounds.keys()):
+            l_objs_sounds.add(f"[green]'{i}'[/]")
         l_objs.add(f"[#A63100]loader.colors[/] ([yellow]len[/]): [#37B6CE]{len(e.loader.colors)}[/]")
         return t
 
