@@ -40,7 +40,7 @@ e.render.render_image(
 )
 
 # ! Set Targets
-@e.events.mouse("fps-counter", RCRE.MOUSEBUTTONUP, RCRE.M_LEFT_CLICK)
+@e.linker.mouse("fps-counter", RCRE.MOUSEBUTTONUP, RCRE.M_LEFT_CLICK)
 def um(obj: RCRE.RENDER_OBJECT, pos: tuple):
     if obj.on_me(pos):
         if obj.pos == (0, 0):
@@ -48,7 +48,7 @@ def um(obj: RCRE.RENDER_OBJECT, pos: tuple):
         elif obj.pos == (10, 10):
             obj.update(pos=(0, 0))
 
-@e.events.keyboard("img-test", RCRE.KEYUP, RCRE.K_s)
+@e.linker.keyboard("img-test", RCRE.KEYUP, RCRE.K_s)
 def um(obj: RCRE.RENDER_OBJECT):
     if obj.size == (50, 50):
         obj.update(size=(50, 100))

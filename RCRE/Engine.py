@@ -210,12 +210,18 @@ class Render:
             timer
         )
 
-class Events:
-    def __init__(self, render: Render) -> None:
+class Linker:
+    def __init__(self, render: Render, **kwargs) -> None:
         self.render: Render = render
 
+        # ! Settings
+        self.view_events: bool = kwargs.get("view_events", False)
+
+        # ! Datas
         self.events = Queue()
         self.targets: List[Types.EVENTS_TARGET] = []
+
+        # ! Loop Linker
         self.events_handler_thread = Thread(target=self._eh, daemon=True)
         self.events_handler_running = False
         self.events_handler_started = False
@@ -223,7 +229,7 @@ class Events:
     def __del__(self) -> None:
         self.stop()
     
-    def _ehaller(self, data: pygame.event.Event, target: Types.EVENTS_TARGET) -> Union[Tuple[Literal[True], Tuple], Tuple[Literal[False], None]]:
+    def _ehaller(self, data: pygame.event.Event, target: Types.EVENTS_TARGET) -> Tuple[bool, Union[Tuple, None]]:
         if data.type == target[1]:
             obj = self.render.search_obj(target[3])
             if obj is not None:
@@ -239,7 +245,8 @@ class Events:
         self.events_handler_started = True
         while self.events_handler_running:
             data: pygame.event.Event = self.events.get()
-            console.print(lattr(data))
+            if self.view_events:
+                console.print(lattr(data))
             for target in self.targets:
                 req, args = self._ehaller(data, target)
                 if req:
@@ -306,12 +313,12 @@ class RCREngine:
         self.vsync = (vsync or False)
 
         # ! Initialized
+        self.console: Console = kwargs.get("console", console)
         self.root: pygame.Surface = None
         self.clock: pygame.time.Clock = None
         self.loader: Loader = None
         self.render: Render = None
-        self.events: Events = None
-        self.console: Console = kwargs.get("console", console)
+        self.linker: Linker = None
 
         # ! Create Thread
         self.loop_thread = Thread(
@@ -326,7 +333,7 @@ class RCREngine:
     def start(self) -> None:
         self.loop_running = True
         self.loop_thread.start()
-        while self.events is None:
+        while self.linker is None:
             time.sleep(1/self.max_fps)
     
     def stop(self) -> None:
@@ -334,8 +341,8 @@ class RCREngine:
             self.render.endless_render.clear()
             self.render.time_render.clear()
             self.loop_running = False
-            self.events.stop()
-            self.events = None
+            self.linker.stop()
+            self.linker = None
             self.render = None
             self.loader = None
             self.clock = None
@@ -357,10 +364,10 @@ class RCREngine:
         self.clock = pygame.time.Clock()
         self.loader = Loader()
         self.render = Render(self.root, self.clock, self.loader, self.max_fps)
-        self.events = Events(self.render)
+        self.linker = Linker(self.render)
 
         # ! Starting
-        self.events.start()
+        self.linker.start()
 
         # ! Other Settings
         pygame.display.set_caption(self.title, self.title)
@@ -377,7 +384,7 @@ class RCREngine:
                 if event.type == Units.QUIT:
                     self.stop()
                     return 0
-                self.events.add_event(event)
+                self.linker.add_event(event)
             self.root.fill(self.loader.colors["white"])
             if self.show_fps:
                 self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
