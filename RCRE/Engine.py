@@ -1,10 +1,11 @@
 import time
 import os
 import pygame
+from queue import Queue
 from tempfile import mkstemp
 from PIL import Image
 from threading import Thread
-from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
+from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union, Literal
 from rich.console import Console
 
 # ! Import PyGame and Settings
@@ -27,6 +28,13 @@ except:
 
 # ! Initialized
 console = Console()
+
+def lattr(obj: object) -> Dict[str, Any]:
+    oa = {}
+    for i in dir(obj):
+        if not i.startswith("_"):
+            oa[i] = eval(f"obj.{i}")
+    return oa
 
 class Loader:
     def __init__(self) -> None:
@@ -118,6 +126,20 @@ class Render:
                 self.time_render.pop(i, None)
                 return None
     
+    def search_obj(self, obj_tag: str) -> Optional[Types.RENDER_OBJECT]:
+        for i in self.endless_render.copy():
+            if i == obj_tag:
+                try:
+                    return self.endless_render[obj_tag]
+                except:
+                    return None
+        for i in self.time_render.copy():
+            if i == obj_tag:
+                try:
+                    return self.time_render[obj_tag]
+                except:
+                    return None
+    
     def get_render_datas(self) -> List[Tuple[Tuple, Dict[str, Any]]]:
         try:
             return \
@@ -188,6 +210,84 @@ class Render:
             timer
         )
 
+class Events:
+    def __init__(self, render: Render) -> None:
+        self.render: Render = render
+
+        self.events = Queue()
+        self.targets: List[Types.EVENTS_TARGET] = []
+        self.events_handler_thread = Thread(target=self._eh, daemon=True)
+        self.events_handler_running = False
+        self.events_handler_started = False
+    
+    def __del__(self) -> None:
+        self.stop()
+    
+    def _ehaller(self, data: pygame.event.Event, target: Types.EVENTS_TARGET) -> Union[Tuple[Literal[True], Tuple], Tuple[Literal[False], None]]:
+        if data.type == target[1]:
+            obj = self.render.search_obj(target[3])
+            if obj is not None:
+                if target[0] == "mouse":
+                    if (data.button == target[2]) or (target[2] is None):
+                        return True, (obj, data.dict.get("pos", (0,0)))
+                elif target[0] == "keyboard":
+                    if (data.key == target[2]) or (target[2] is None):
+                        return True, (obj,)
+        return False, None
+    
+    def _eh(self):
+        self.events_handler_started = True
+        while self.events_handler_running:
+            data: pygame.event.Event = self.events.get()
+            console.print(lattr(data))
+            for target in self.targets:
+                req, args = self._ehaller(data, target)
+                if req:
+                    target[4](*args)
+        self.events_handler_started = False
+    
+    def add_event(self, event: pygame.event.Event) -> None:
+        self.events.put_nowait(event)
+    
+    def start(self) -> None:
+        if not self.events_handler_running:
+            self.events_handler_running = True
+            self.events_handler_thread.start()
+            while not self.events_handler_started:
+                    time.sleep(0.01)
+
+    def stop(self) -> None:
+        if self.events_handler_running:
+            self.events_handler_running = False
+            while self.events_handler_started:
+                time.sleep(0.01)
+    
+    def mouse(
+        self,
+        obj_tag: Types.RENDER_OBJECT_TAG,
+        action: Types.MOUSE_ACTION,
+        button: Types.MOUSE_BUTTON=None
+    ):
+        def wrapper(func):
+            self.targets.append(("mouse", action, button, obj_tag, func))
+            def wapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            return wapper
+        return wrapper
+    
+    def keyboard(
+        self,
+        obj_tag: Types.RENDER_OBJECT_TAG,
+        action: Types.KEYBOARD_ACTION,
+        button: Types.KEYBOARD_BUTTON
+    ):
+        def wrapper(func):
+            self.targets.append(("keyboard", action, button, obj_tag, func))
+            def wapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            return wapper
+        return wrapper
+
 class RCREngine:
     def __init__(
         self,
@@ -210,7 +310,8 @@ class RCREngine:
         self.clock: pygame.time.Clock = None
         self.loader: Loader = None
         self.render: Render = None
-        self.console = kwargs.get("console", console)
+        self.events: Events = None
+        self.console: Console = kwargs.get("console", console)
 
         # ! Create Thread
         self.loop_thread = Thread(
@@ -225,14 +326,16 @@ class RCREngine:
     def start(self) -> None:
         self.loop_running = True
         self.loop_thread.start()
-        while self.render is None:
-            time.sleep(0.1)
+        while self.events is None:
+            time.sleep(1/self.max_fps)
     
     def stop(self) -> None:
         if self.loop_running:
             self.render.endless_render.clear()
             self.render.time_render.clear()
             self.loop_running = False
+            self.events.stop()
+            self.events = None
             self.render = None
             self.loader = None
             self.clock = None
@@ -254,6 +357,10 @@ class RCREngine:
         self.clock = pygame.time.Clock()
         self.loader = Loader()
         self.render = Render(self.root, self.clock, self.loader, self.max_fps)
+        self.events = Events(self.render)
+
+        # ! Starting
+        self.events.start()
 
         # ! Other Settings
         pygame.display.set_caption(self.title, self.title)
@@ -267,10 +374,10 @@ class RCREngine:
         while self.loop_running:
             self.clock.tick(self.max_fps)
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == Units.QUIT:
                     self.stop()
                     return 0
-                # TODO: Обработчик Event
+                self.events.add_event(event)
             self.root.fill(self.loader.colors["white"])
             if self.show_fps:
                 self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")

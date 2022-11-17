@@ -19,7 +19,7 @@ class Debag:
         self.view_running = False
 
     def _gt(self, e: Engine.RCREngine) -> str:
-        t = Tree("[green]RCREngine[/]")
+        t = Tree(f"[green]{Engine.Units.__name__}[/]")
         t.add(f"[#FF9000]FPS:[/] [#37B6CE]{round(e.clock.get_fps(),1)}[/]")
         t.add(f"[#FF9000]CPU Load:[/] [#37B6CE]{self.progress.cpu_percent()}[/] %")
         r_objs = t.add("[#FF9000]Render Object[/]")

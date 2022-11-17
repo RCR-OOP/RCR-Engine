@@ -1,6 +1,6 @@
 import pygame
 from .Functional import neni
-from typing import Tuple, Dict, Any, Union
+from typing import Tuple, Dict, Any, Union, Literal, Optional
 
 # ! Functions
 def callback() -> str: return "None"
@@ -23,6 +23,14 @@ class FontRender:
         self.frames = frames
         self.visible = visible
     
+    def on_me(self, pos: Tuple[int, int]) -> bool:
+        size = self.font.render(self.text, True, self.color).get_size()
+        rect = (*self.pos, self.pos[0]+size[0], self.pos[1]+size[1])
+        if rect[0] <= pos[0] <= rect[2]:
+            if rect[1] <= pos[1] <= rect[3]:
+                return True
+        return False
+
     def update(
         self,
         text: str=None,
@@ -57,6 +65,14 @@ class ImageRender():
         self.frames = frames
         self.visible = visible
     
+    def on_me(self, pos: Tuple[int, int]) -> bool:
+        size = self.img.get_size()
+        rect = (*self.pos, self.pos[0]+size[0], self.pos[1]+size[1])
+        if rect[0] <= pos[0] <= rect[2]:
+            if rect[1] <= pos[1] <= rect[3]:
+                return True
+        return False
+    
     def update(
         self,
         img: pygame.Surface=None,
@@ -69,7 +85,7 @@ class ImageRender():
         self.visible = neni(visible, self.visible)
 
         if neni(size, self.size) != self.size:
-            pygame.transform.scale(self.img, size)
+            self.img = pygame.transform.scale(self.img, size)
         self.size = neni(size, self.size)
 
     def get_render_datas(self) -> Tuple[Tuple, Dict[str, Any]]:
@@ -79,6 +95,15 @@ class ImageRender():
             return (self.img, self.pos), {}
         return (), {}
 
-# ! Const
+# ! Types
 PATH = str
 RENDER_OBJECT = Union[FontRender, ImageRender]
+RENDER_OBJECT_TAG = str
+MOUSE_ACTION = int
+MOUSE_BUTTON = int
+KEYBOARD_BUTTON = int
+KEYBOARD_ACTION = int
+EVENTS_TARGET = Union[
+    Tuple[Literal["mouse"], MOUSE_ACTION, Optional[MOUSE_BUTTON], RENDER_OBJECT_TAG, Any],
+    Tuple[Literal["keyboard"], KEYBOARD_ACTION, Optional[KEYBOARD_BUTTON], RENDER_OBJECT_TAG, Any]
+]

@@ -1,6 +1,7 @@
 import os
+from pygame.constants import *
 
-__name__ = "RCR Engine"
+__name__ = "RCREngine"
 __version__ = "0.1.0-alpha"
 
 PATH_ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets")
@@ -24,3 +25,9 @@ PYTHON наш насущный дай нам;
 во веки веков,
 ENTER.
 """
+
+M_LEFT_CLICK: int = 1
+M_MIDDLE_CLICK: int = 2
+M_RIGHT_CLICK: int = 3
+M_SCROLL_UP: int = 4
+M_SCROLL_DOWN: int = 5
