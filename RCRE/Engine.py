@@ -5,7 +5,7 @@ from queue import Queue
 from tempfile import mkstemp
 from PIL import Image
 from threading import Thread
-from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union, Literal
+from typing import Tuple, Optional, NoReturn, Dict, Any, List, Union
 from rich.console import Console
 
 # ! Import PyGame and Settings

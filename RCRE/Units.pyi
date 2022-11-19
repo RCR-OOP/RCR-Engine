@@ -1,11 +1,12 @@
-from typing import List
-
 __name__: str
 __version__: str
 
 PATH_ASSETS_DIR: str
+PATH_DATA_DIR: str
 PATH_ENGINE_ICON: str
 PATH_ERROR_IMAGE: str
+PATH_FLUID_SYNTH: str
+PATH_MIDI_SOUND_FONTS: str
 
 MOLITVA: str
 

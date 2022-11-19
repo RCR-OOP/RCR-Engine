@@ -1,4 +1,4 @@
-NENI_TYPES = [Ellipsis, None, NotImplemented]
+NENI_TYPES = (..., None, NotImplemented)
 
 def neni(value, default=None):
     if (type(value) in NENI_TYPES) or (value in NENI_TYPES):
