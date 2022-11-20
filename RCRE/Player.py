@@ -1,5 +1,6 @@
 import os
 import io
+import time
 import sounddevice as sd
 import soundfile as sf
 import subprocess
@@ -49,7 +50,7 @@ class Sound:
             raise TypeError(f"Type of argument 'fp', cannot be '{type(fp)}'.")
         self._PATH = self._SOUND.name
         self._S: float = self._SOUND.samplerate
-        self._BS: int = int(self._S * 0.0022675736961451248)
+        self._BS: int = round(self._S * 0.0022675736961451248)
         self._DT: str = kwargs.get("dtype", "float32")
         self._DID: Optional[int] = kwargs.get("device_id", None)
         self._D: float = self._SOUND.frames / self._S
@@ -162,6 +163,10 @@ class Sound:
     def unpause(self):
         if self._PE:
             self._PE = False
+    
+    def wait(self) -> bool:
+        while self._P:
+            time.sleep(0.001)
 
     def play(self, mode: int = 1) -> None:
         if not self._P:

@@ -83,6 +83,9 @@ class Loader:
     
     def load_sound(self, tag: str, fp: Player.SOUND_FP) -> None:
         self.sounds[tag] = Player.Sound(fp)
+    
+    def load_sound_from_midi(self, tag: str, fp: Player.SOUND_FP) -> None:
+        self.sounds[tag] = Player.Sound.from_midi(fp)
 
 class Render:
     def __init__(
@@ -96,55 +99,66 @@ class Render:
         self.clock = clock
         self.loader = loader
         self.max_fps = max_fps
-        self.endless_render: Dict[str, Types.RENDER_OBJECT] = {}
-        self.time_render: Dict[str, Types.RENDER_OBJECT] = {}
+        self.is_rendered: Dict[str, Types.RENDER_OBJECT] = {}
+        self.is_not_rendered: Dict[str, Types.RENDER_OBJECT] = {}
     
     def _fpsc(self) -> str:
         return f"{round(self.clock.get_fps(), 1)} fps"
     
     def _objc(self) -> None:
         try:
-            for i in self.time_render.copy():
-                if self.time_render[i].frames == 0:
-                    self.time_render.pop(i, None)
+            for i in self.is_rendered:
+                if self.is_rendered[i].frames == 0:
+                    self.is_rendered.pop(i)
+            for i in self.is_not_rendered:
+                if self.is_not_rendered[i].frames == 0:
+                    self.is_not_rendered.pop(i)
         except:
             console.print_exception()
     
-    def _arobj(self, obj_tag: str, obj: Types.RENDER_OBJECT, timer: str) -> None:
-        if timer < 0:
-            self.endless_render[obj_tag] = obj
+    def _arobj(self, obj_tag: str, obj: Types.RENDER_OBJECT, rendering: bool=True) -> None:
+        if rendering:
+            self.is_rendered[obj_tag] = obj
         else:
-            self.time_render[obj_tag] = obj
+            self.is_not_rendered[obj_tag] = obj
     
     def delete_obj(self, obj_tag: str) -> None:
-        for i in self.endless_render.copy():
+        for i in self.is_rendered.copy():
             if obj_tag == i:
-                self.endless_render.pop(i, None)
+                self.is_rendered.pop(i, None)
                 return None
-        for i in self.time_render.copy():
+        for i in self.is_not_rendered.copy():
             if obj_tag == i:
-                self.time_render.pop(i, None)
+                self.is_not_rendered.pop(i, None)
                 return None
     
     def search_obj(self, obj_tag: str) -> Optional[Types.RENDER_OBJECT]:
-        for i in self.endless_render.copy():
+        for i in self.is_rendered.copy():
             if i == obj_tag:
                 try:
-                    return self.endless_render[obj_tag]
+                    return self.is_rendered[obj_tag]
                 except:
                     return None
-        for i in self.time_render.copy():
+        for i in self.is_not_rendered.copy():
             if i == obj_tag:
                 try:
-                    return self.time_render[obj_tag]
+                    return self.is_not_rendered[obj_tag]
                 except:
                     return None
     
-    def get_render_datas(self) -> List[Tuple[Tuple, Dict[str, Any]]]:
+    def to_rendering(self, obj_tag: str) -> None:
+        d = self.is_not_rendered.pop(obj_tag, None)
+        if d is not None:
+            self.is_rendered[obj_tag] = d
+    
+    def to_not_rendering(self, obj_tag: str) -> None:
+            d = self.is_rendered.pop(obj_tag, None)
+            if d is not None:
+                self.is_not_rendered[obj_tag] = d
+
+    def get_render_datas(self) -> Tuple[Tuple[Tuple, Dict[str, Any]]]:
         try:
-            return \
-                [er.get_render_datas() for er in self.endless_render.values()] +\
-                [nr.get_render_datas() for nr in self.time_render.values()]
+            return tuple([er.get_render_datas() for er in self.is_rendered.values()])
         except:
             console.print_exception()
     
@@ -160,8 +174,7 @@ class Render:
                 pos or (0, 0),
                 f"{round(self.clock.get_fps(), 1)} fps",
                 -1
-            ),
-            -1
+            )
         )
     
     def render_font(
@@ -169,10 +182,11 @@ class Render:
         obj_tag: str,
         font_tag: str,
         pos: Tuple[int, int],
-        color: pygame.Color,
-        text: str="",
+        color: pygame.Color=pygame.Color("black"),
+        text: str="...",
         timer: Union[float, int]=-1,
-        visible: bool=True
+        visible: bool=True,
+        rendering: bool=True
     ) -> None:
         self._arobj(
             obj_tag,
@@ -183,7 +197,8 @@ class Render:
                 text,
                 Functional.ntd(int(timer*self.max_fps), -1),
                 visible
-            )
+            ),
+            rendering
         )
     
     def render_image(
@@ -193,7 +208,9 @@ class Render:
         pos: Tuple[int, int],
         resize: Tuple[int, int]=None,
         rotate: float=None,
-        timer: Union[float, int]=-1
+        timer: Union[float, int]=-1,
+        visible: bool=True,
+        rendering: bool=True
     ) -> None:
         img = self.loader.images.get(img_tag, self.loader.images["error"])
         img: pygame.Surface = pygame.transform.scale(img, resize) if (resize is not None) else img
@@ -205,9 +222,10 @@ class Render:
                 img,
                 img.get_size(),
                 pos,
-                Functional.ntd(int(timer*self.max_fps), -1)
+                Functional.ntd(int(timer*self.max_fps), -1),
+                visible
             ),
-            timer
+            rendering
         )
 
 class Linker:
@@ -235,6 +253,9 @@ class Linker:
             if obj is not None:
                 if target[0] == "mouse":
                     if (data.button == target[2]) or (target[2] is None):
+                        if target[5]:
+                            if not obj.on_me(data.dict.get("pos", (0,0))):
+                                return False, None
                         return True, (obj, data.dict.get("pos", (0,0)))
                 elif target[0] == "keyboard":
                     if (data.key == target[2]) or (target[2] is None):
@@ -248,6 +269,7 @@ class Linker:
             if self.view_events:
                 console.print(lattr(data))
             for target in self.targets:
+
                 req, args = self._ehaller(data, target)
                 if req:
                     target[4](*args)
@@ -273,10 +295,11 @@ class Linker:
         self,
         obj_tag: Types.RENDER_OBJECT_TAG,
         action: Types.MOUSE_ACTION,
-        button: Types.MOUSE_BUTTON=None
+        button: Types.MOUSE_BUTTON=None,
+        auto_on_me: bool=False
     ):
         def wrapper(func):
-            self.targets.append(("mouse", action, button, obj_tag, func))
+            self.targets.append(("mouse", action, button, obj_tag, func, auto_on_me))
             def wapper(*args, **kwargs):
                 return func(*args, **kwargs)
             return wapper
@@ -338,8 +361,8 @@ class RCREngine:
     
     def stop(self) -> None:
         if self.loop_running:
-            self.render.endless_render.clear()
-            self.render.time_render.clear()
+            self.render.is_rendered.clear()
+            self.render.is_not_rendered.clear()
             self.loop_running = False
             self.linker.stop()
             self.linker = None
@@ -387,7 +410,7 @@ class RCREngine:
                 self.linker.add_event(event)
             self.root.fill(self.loader.colors["white"])
             if self.show_fps:
-                self.render.endless_render["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
+                self.render.is_rendered["fps-counter"].update(f"{round(self.clock.get_fps(), 1)} fps")
             for rargs, rkwargs in self.render.get_render_datas():
                 try:
                     if (len(rargs)+len(rkwargs)) > 0:

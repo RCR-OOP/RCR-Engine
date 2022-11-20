@@ -23,11 +23,11 @@ class Debag:
         t.add(f"[#FF9000]FPS:[/] [#37B6CE]{round(e.clock.get_fps(),1)}[/]")
         t.add(f"[#FF9000]CPU Load:[/] [#37B6CE]{self.progress.cpu_percent()}[/] %")
         r_objs = t.add("[#FF9000]Render Object[/]")
-        r_objs_endless = r_objs.add("[#A63100]render.endless_render[/]")
-        for i in list(e.render.endless_render.keys()):
+        r_objs_endless = r_objs.add("[#A63100]render.is_rendered[/]")
+        for i in list(e.render.is_rendered.keys()):
             r_objs_endless.add(f"[green]'{i}'[/]")
-        r_objs_time = r_objs.add("[#A63100]render.time_render[/]")
-        for i in list(e.render.time_render.keys()):
+        r_objs_time = r_objs.add("[#A63100]render.is_not_rendered[/]")
+        for i in list(e.render.is_not_rendered.keys()):
             r_objs_time.add(f"[green]'{i}'[/]")
         l_objs = t.add("[#FF9000]Loader Objects[/]")
         l_objs_images = l_objs.add("[#A63100]loader.images[/]")

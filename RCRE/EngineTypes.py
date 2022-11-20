@@ -95,26 +95,6 @@ class ImageRender():
             return (self.img, self.pos), {}
         return (), {}
 
-class FramesRender:
-    def __init__(
-        self,
-        size: Tuple[int, int],
-        pos: Tuple[int, int],
-        frames: int=-1,
-        visible: bool=True
-    ) -> None:
-        self.size = size
-        self.pos = pos
-        self.frames = frames
-        self.visible = visible
-    
-    def update(self, pos: Tuple[int, int]=None, visible: bool=None) -> None:
-        self.pos = neni(pos, self.pos)
-        self.visible = neni(visible, self.visible)
-    
-    def get_render_datas(self) -> Tuple[Tuple, Dict[str, Any]]:
-        return (), {}
-
 # ! Types
 PATH = str
 RENDER_OBJECT = Union[FontRender, ImageRender]
@@ -124,6 +104,6 @@ MOUSE_BUTTON = int
 KEYBOARD_BUTTON = int
 KEYBOARD_ACTION = int
 EVENTS_TARGET = Union[
-    Tuple[Literal["mouse"], MOUSE_ACTION, Optional[MOUSE_BUTTON], RENDER_OBJECT_TAG, Any],
+    Tuple[Literal["mouse"], MOUSE_ACTION, Optional[MOUSE_BUTTON], RENDER_OBJECT_TAG, Any, bool],
     Tuple[Literal["keyboard"], KEYBOARD_ACTION, Optional[KEYBOARD_BUTTON], RENDER_OBJECT_TAG, Any]
 ]
