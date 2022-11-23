@@ -8,11 +8,6 @@ from threading import Thread
 from tempfile import mkstemp
 from dataclasses import dataclass
 from typing import Optional, Union
-# * Local Imports
-try:
-    from . import Units
-except:
-    import Units
 
 # ! Other
 @dataclass
@@ -129,7 +124,7 @@ class Sound:
 
     def set_pos(self, value: float) -> None:
         if 0.0 <= value <= self._D:
-            self._POS = int(value * self._S)
+            self._POS = round(value*self._S)
             self._SOUND.seek(self._POS)
 
     def get_volume(self) -> float:
@@ -144,7 +139,7 @@ class Sound:
             while (mode != 0) and (self._P):
                 while self._P:
                     self._check_pause()
-                    if len(data := self._SOUND.read(self._BS, self._DT)) != 0:
+                    if len(data:=self._SOUND.read(self._BS, self._DT)) != 0:
                         output_stream.write(data*self._V)
                         self._POS += self._BS
                     else:

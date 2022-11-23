@@ -3,7 +3,7 @@ import time
 import RCRE
 
 # ! Initialized
-e = RCRE.RCREngine(show_fps=True)
+e = RCRE.RCREngine(show_fps=True, max_fps=100000)
 
 # ! Functions
 def gv(per: float, max_value: float, min_value: float) -> float:
@@ -11,7 +11,6 @@ def gv(per: float, max_value: float, min_value: float) -> float:
 
 def gp(value: float, max_value: float, min_value: float) -> float:
     return (value/(max_value-min_value))*100
-
 
 # ! Starting
 e.start()

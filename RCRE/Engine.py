@@ -131,7 +131,7 @@ class Render:
             if obj_tag == i:
                 self.is_not_rendered.pop(i, None)
                 return None
-    
+
     def search_obj(self, obj_tag: str) -> Optional[Types.RENDER_OBJECT]:
         for i in self.is_rendered.copy():
             if i == obj_tag:
@@ -227,6 +227,8 @@ class Render:
             ),
             rendering
         )
+
+
 
 class Linker:
     def __init__(self, render: Render, **kwargs) -> None:
@@ -402,7 +404,6 @@ class RCREngine:
         
         # ! Loop
         while self.loop_running:
-            self.clock.tick(self.max_fps)
             for event in pygame.event.get():
                 if event.type == Units.QUIT:
                     self.stop()
@@ -419,6 +420,7 @@ class RCREngine:
                     console.print_exception()
             self.render._objc()
             pygame.display.update()
+            self.clock.tick(self.max_fps)
 
 if bool(os.environ['RCR_ENGINE_MSG']):
     console.print(f"[#42036F]*[/] [#00FF00]{Units.__name__}[/] (v[#33CCCC]{Units.__version__}[/]) [yellow]is loaded[/]!")
