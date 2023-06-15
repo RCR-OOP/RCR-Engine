@@ -1,5 +1,0 @@
-pygame
-pillow
-rich
-sounddevice
-soundfile

@@ -1,0 +1,15 @@
+glfw-types==1.0.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:1acf2f3c0615c1edd4842b2c613c0e0db448dbe9033c9a817a0a6861091822a7
+glfw==2.5.9 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:1510a77507d279f8a35e3dbec2892774358539500687159f4bf2fd15cefff81d \
+    --hash=sha256:ac794f5a9be767d9865fc23d842aec2db6c36366d5aa58879ca52bdd231f9a07 \
+    --hash=sha256:adc6b2c4de5345afc4970515fd8d4332557522727e1d0fd7b68c99afaaa24b80 \
+    --hash=sha256:bed92052e1d9f6bc0f2a918e78f9b343b9a350e93d111e8b2ab2cd70382cd237 \
+    --hash=sha256:c99ebf600b9f551ce94f81a0acd1d224ef62f266375cfb47797ed8cb62916ff3 \
+    --hash=sha256:d345b2f8cfddfbd1a80e4c84abee3702be17301b3751820abae53283de749b0d \
+    --hash=sha256:e5746ae1491ef4a17df645a18f5f9e0c671d08d615ab0e9b46181c613133281f \
+    --hash=sha256:f866f50bbfbb779b2a8ca3efff306d5206f5611cbc58fa77f23adc5efb401af8 \
+    --hash=sha256:fbad05c574ec6950fa11c992901ee8f29729fcc9447b1830924d04cf51e46b17
+pyopengl==3.1.7 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:a6ab19cf290df6101aaf7470843a9c46207789855746399d0af92521a0a92b7a \
+    --hash=sha256:eef31a3888e6984fd4d8e6c9961b184c9813ca82604d37fe3da80eb000a76c86

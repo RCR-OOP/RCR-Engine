@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "rcre"
+version = "0.1.0.post1"
+description = "Just a Python game-engine!"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyopengl = "^3.1.7"
+glfw = "^2.5.9"
+glfw-types = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
