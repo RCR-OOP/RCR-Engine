@@ -35,7 +35,12 @@ class Engine:
 
         # * Регестрация потока
         self.__started = True
-        self.__loop_stream = threading.Thread("RCRE_MAIN", target=self.__loop, daemon=True)
+        self.__loop_stream = threading.Thread(
+            "RCRE",
+            self.__loop,
+            "MAIN_LOOP",
+            daemon=True
+        )
     
     # ? Property
     @property
@@ -48,7 +53,7 @@ class Engine:
     def set_title(self, value: str) -> None:
         self.__title = value
         if self.__root is not None:
-            glfw.set_window_title(self.__root, value)
+            glfw.set_window_title(self.__root, self.__title)
     
     # ? Main Loop
     def __loop(self) -> None:
