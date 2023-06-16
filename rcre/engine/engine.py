@@ -1,3 +1,4 @@
+import time
 import glfw
 import threading
 from fpstimer import FPSTimer
@@ -35,12 +36,7 @@ class Engine:
 
         # * Регестрация потока
         self.__started = True
-        self.__loop_stream = threading.Thread(
-            "RCRE",
-            self.__loop,
-            "MAIN_LOOP",
-            daemon=True
-        )
+        self.__loop_stream = threading.Thread(target=self.__loop, name="MAIN_LOOP", daemon=True)
     
     # ? Property
     @property
@@ -76,14 +72,18 @@ class Engine:
         
         # * Closing
         glfw.terminate()
-        self.__root = None
+        self.stop()
     
     # ? Functions
     def start(self) -> None:
         self.__started = True
         self.__loop_stream.start()
     
+    def join(self) -> None:
+        """Waiting for the end of the main cycle."""
+        if self.started:
+            while self.started: time.sleep(0.01)
+    
     def stop(self) -> None:
         self.__started = False
-        while self.__root is not None:
-            self.__fps_timer.sleep()
+        self.__root = None
