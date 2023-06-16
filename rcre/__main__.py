@@ -1,8 +1,19 @@
-from .engine import Engine
+from rich.console import Console
 
-e = Engine()
-e.start()
+console = Console()
 
-# * Code
+def main():
+    from .engine import Engine
 
-e.join()
+    e = Engine()
+    e.start()
+
+    # * Code
+
+    e.join()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except:
+        console.print_exception(word_wrap=True, show_locals=True)
