@@ -9,11 +9,12 @@ from PIL import Image
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+# > Local Import's
+from .render import Render
 # > Typing
 from typing import Tuple, Optional
 
 # ! Initialization
-glfw.init()
 OpenGL.ERROR_CHECKING = True
 OpenGL.ERROR_LOGGING = True
 OpenGL.FULL_LOGGING = True
@@ -43,6 +44,7 @@ class Engine:
 
         # * Другие переменые
         self.__fps_timer = FPSTimer(self.__fps)
+        self.__render = Render()
         self.__root: Optional[glfw._GLFWwindow] = None
 
         # * Регестрация потока
@@ -62,9 +64,17 @@ class Engine:
         if self.__root is not None:
             glfw.set_window_title(self.__root, self.__title)
     
+    # ? Private Methods
+    def __loop_end(self) -> None:
+        self.__started = False
+        self.__root = None
+    
     # ? Main Loop
     def __loop(self) -> None:
         """"""
+        # * Initialization GLFW
+        glfw.init()
+        
         # * Create Window
         self.__root = glfw.create_window(*self.__size, self.__title, None, None)
 
@@ -116,7 +126,7 @@ class Engine:
         
         # * Closing
         glfw.terminate()
-        self.stop()
+        self.__loop_end()
     
     # ? Functions
     def start(self) -> None:
@@ -131,5 +141,4 @@ class Engine:
     
     def stop(self) -> None:
         """Stopping the main cycle."""
-        self.__started = False
-        self.__root = None
+        self.started = False
