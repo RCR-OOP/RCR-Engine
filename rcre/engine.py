@@ -22,7 +22,7 @@ OpenGL.ERROR_ON_COPY = True
 # ! Functions
 def get_asset_path(filepath: str) -> str:
     return os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        os.path.dirname(os.path.dirname(__file__)),
         "assets", filepath
     )
 
@@ -33,11 +33,6 @@ class Engine:
         title: Optional[str]=None,
         size: Optional[Tuple[int, int]]=None,
         fps: Optional[int]=None,
-        *,
-        checking_error: bool=True,
-        logging_error: bool=True,
-        logging_full: bool=True,
-        copy_on_error: bool=True,
         **kwargs
     ) -> None:
         """"""

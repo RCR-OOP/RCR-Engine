@@ -1,18 +1,14 @@
 from PIL import Image
 from pathlib import Path
-from dataclasses import dataclass
 # > Local Import's
 from .tree import Tree
-# > Typing Import's
+from .types import PathType
+from .functional import is_path
+# > Typing
 from typing import Union, Any
 
-# ! Assets Types
-@dataclass
-class ImageAsset:
-    image: Image.Image
-
 # ! Type Alias
-AssetType = Union[ImageAsset, Any]
+AssetType = Union[Image.Image, Any]
 
 # ! Main Class
 class Assets:
@@ -23,11 +19,18 @@ class Assets:
         if self.__dirpath.is_dir():
             raise NotADirectoryError(f"The path must be the path to the directory: {self.__dirpath.name}")
     
-    def __setitem__(self, key: str, value: AssetType) -> None: self.__assets.set(key, value)
-    def __getitem__(self, key: str) -> None:
+    # ? Dander-methods
+    def __setitem__(self, key: str, data: AssetType) -> None: self.__assets.set(key, data)
+    def __getitem__(self, key: str) -> AssetType:
         if (item:=self.__assets.get(key, None)) is not None:
             return item
         raise KeyError(f"No value for key {repr(key)}")
     def __delitem__(self, key: str) -> None: self.__assets.delete(key)
     
-    
+    # ? Methods
+    def load_image(self, key: str, data: Union[PathType, Image.Image]) -> Image.Image:
+        if is_path(data):
+            self.__setitem__(key, Image.open(data).convert("RGBA"))
+        elif isinstance(data, Image.Image):
+            self.__setitem__(key, data.convert("RGBA"))
+        raise TypeError("This type for loading an asset is not supported.")
