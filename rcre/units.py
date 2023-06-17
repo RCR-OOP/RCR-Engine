@@ -1,0 +1,1 @@
+IMAGE_RENDER_TYPE: int = 0

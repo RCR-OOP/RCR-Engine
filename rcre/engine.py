@@ -2,15 +2,16 @@ import os
 import time
 import glfw
 import threading
-from fpstimer import FPSTimer
-# > OpenGL Import
-import OpenGL
 from PIL import Image
+from fpstimer import FPSTimer
+# > OpenGL
+import OpenGL
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 # > Local Import's
 from .render import Render
+from .units import IMAGE_RENDER_TYPE
 # > Typing
 from typing import Tuple, Optional
 
@@ -19,13 +20,6 @@ OpenGL.ERROR_CHECKING = True
 OpenGL.ERROR_LOGGING = True
 OpenGL.FULL_LOGGING = True
 OpenGL.ERROR_ON_COPY = True
-
-# ! Functions
-def get_asset_path(filepath: str) -> str:
-    return os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "assets", filepath
-    )
 
 # ! Main Class
 class Engine:
@@ -43,8 +37,8 @@ class Engine:
         self.__fps = fps or 60
 
         # * Другие переменые
+        self.render = Render()
         self.__fps_timer = FPSTimer(self.__fps)
-        self.__render = Render()
         self.__root: Optional[glfw._GLFWwindow] = None
 
         # * Регестрация потока
@@ -82,8 +76,8 @@ class Engine:
         glfw.set_window_pos(self.__root, 100, 100)
         glfw.make_context_current(self.__root)
 
-        i = Image.open(get_asset_path("neko.jpg")).convert("RGBA").resize( (300, 300) )
-        bmp = i.tobytes("raw", "RGBA", 0, -1)
+        #i = Image.open(get_asset_path("neko.jpg")).convert("RGBA").resize( (300, 300) )
+        #bmp = i.tobytes("raw", "RGBA", 0, -1)
         
         # * OpenGL Render Settings
         glEnable(GL_ALPHA_TEST)
@@ -110,11 +104,10 @@ class Engine:
             glLoadIdentity()
             
             # ? Render
-            glRasterPos2i(10, 10)
-            glDrawPixels(i.size[0], i.size[1], GL_RGBA, GL_UNSIGNED_BYTE, bmp)
-            
-            glRasterPos2i(200, 200)
-            glDrawPixels(i.size[0], i.size[1], GL_RGBA, GL_UNSIGNED_BYTE, bmp)
+            for render_type, pos, args in self.render.rendering():
+                if render_type == IMAGE_RENDER_TYPE:
+                    glRasterPos2i(pos[0], pos[1])
+                    glDrawPixels(*args)
             
             # ? Production
             glPopMatrix()
